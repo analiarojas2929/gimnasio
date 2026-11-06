@@ -45,6 +45,12 @@ export default function Navbar() {
             </a>
           ))}
           <a
+            href="/login"
+            className="text-sm text-white/65 transition-colors hover:text-neon"
+          >
+            Mi portal
+          </a>
+          <a
             href="#contacto"
             className="inline-flex items-center gap-2 rounded bg-neon px-4 py-2.5 text-sm font-bold text-ink transition-colors hover:bg-white"
           >
@@ -80,6 +86,13 @@ export default function Navbar() {
                 {label}
               </a>
             ))}
+            <a
+              href="/login"
+              onClick={closeMenu}
+              className="border-b border-white/10 py-3.5 text-sm text-white/75 hover:text-neon"
+            >
+              Mi portal
+            </a>
             <a
               href="#contacto"
               onClick={closeMenu}
