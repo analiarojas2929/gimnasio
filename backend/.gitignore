@@ -1,0 +1,16 @@
+
+# Dependencias
+node_modules/
+**/node_modules/
+
+# Variables privadas
+.env
+.env.*
+
+# Archivos compilados
+dist/
+**/dist/
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
