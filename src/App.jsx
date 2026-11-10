@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import About from "./components/About.jsx";
 import Classes from "./components/Classes.jsx";
@@ -7,13 +8,19 @@ import Hero from "./components/Hero.jsx";
 import Navbar from "./components/Navbar.jsx";
 import Plans from "./components/Plans.jsx";
 import Schedule from "./components/Schedule.jsx";
+import Inscription from "./components/Inscription.jsx";
 
 export default function App() {
   const [selectedPlan, setSelectedPlan] = useState("");
 
   function choosePlan(plan) {
     setSelectedPlan(plan);
-    document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" });
+
+    setTimeout(() => {
+      document.getElementById("inscripcion")?.scrollIntoView({
+        behavior: "smooth",
+      });
+    }, 100);
   }
 
   return (
@@ -21,15 +28,22 @@ export default function App() {
       <a className="skip-link" href="#main-content">
         Saltar al contenido
       </a>
+
       <Navbar />
+
       <main id="main-content">
         <Hero />
         <About />
+
         <Plans onChoosePlan={choosePlan} />
+
+        <Inscription selectedPlan={selectedPlan} />
+
         <Classes />
         <Schedule />
-        <Contact selectedPlan={selectedPlan} />
+        <Contact />
       </main>
+
       <Footer />
     </>
   );
