@@ -8,7 +8,7 @@ import Hero from "./components/Hero.jsx";
 import Navbar from "./components/Navbar.jsx";
 import Plans from "./components/Plans.jsx";
 import Schedule from "./components/Schedule.jsx";
-import Inscription from "./components/Inscription.jsx";
+import Inscription from "./services/Inscription.jsx";
 
 export default function App() {
   const [selectedPlan, setSelectedPlan] = useState("");
