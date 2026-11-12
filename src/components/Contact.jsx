@@ -37,23 +37,60 @@ export default function Contact() {
     event.preventDefault();
 
     const nextErrors = {};
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phoneDigits = form.phone.replace(/\D/g, "");
 
-    if (form.name.trim().length < 2) {
-      nextErrors.name = "Ingresa tu nombre.";
+    const nombre = form.name.trim();
+    const correo = form.email.trim();
+    const telefono = form.phone.trim();
+    const mensaje = form.message.trim();
+
+    const nombreValido = /^[A-Za-z ]+$/;
+
+    const emailPattern =
+      /^(?!.*\.\.)[A-Za-z0-9_%+-]+(?:\.[A-Za-z0-9_%+-]+)*@[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:\.[A-Za-z]{2,})+$/;
+
+    const phoneDigits = telefono.replace(/\D/g, "");
+
+    const telefonoNacional = phoneDigits.startsWith("56")
+      ? phoneDigits.slice(2)
+      : phoneDigits;
+
+    // Validar nombre
+    if (!nombre) {
+      nextErrors.name = "El nombre es obligatorio.";
+    } else if (nombre.length > 50 || !nombreValido.test(nombre)) {
+      nextErrors.name =
+        "El nombre solo puede contener letras y espacios. Máximo 50 caracteres.";
     }
 
-    if (!emailPattern.test(form.email.trim())) {
-      nextErrors.email = "Ingresa un correo válido.";
+    // Validar correo
+    if (!correo) {
+      nextErrors.email = "El correo es obligatorio.";
+    } else if (
+      correo.length < 10 ||
+      correo.length > 100 ||
+      !emailPattern.test(correo)
+    ) {
+      nextErrors.email =
+        "Ingresa un correo válido de entre 10 y 100 caracteres.";
     }
 
-    if (phoneDigits.length < 8 || phoneDigits.length > 15) {
-      nextErrors.phone = "Ingresa un teléfono válido.";
+    // Validar teléfono
+    if (!telefono) {
+      nextErrors.phone = "El teléfono es obligatorio.";
+    } else if (
+      telefonoNacional.length !== 9 ||
+      !telefonoNacional.startsWith("9")
+    ) {
+      nextErrors.phone =
+        "Ingresa un número válido de 9 dígitos. Ejemplo: +56 9 1234 5678.";
     }
 
-    if (form.message.trim().length < 10) {
-      nextErrors.message = "Escribe al menos 10 caracteres.";
+    // Validar mensaje
+    if (!mensaje) {
+      nextErrors.message = "El mensaje es obligatorio.";
+    } else if (mensaje.length < 10 || mensaje.length > 500) {
+      nextErrors.message =
+        "El mensaje debe tener entre 10 y 500 caracteres.";
     }
 
     setErrors(nextErrors);
@@ -73,10 +110,10 @@ export default function Contact() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            nombre: form.name.trim(),
-            correo: form.email.trim(),
-            telefono: form.phone.trim(),
-            mensaje: form.message.trim(),
+            nombre,
+            correo,
+            telefono,
+            mensaje,
           }),
         }
       );
@@ -91,9 +128,12 @@ export default function Contact() {
 
       setSubmitted(true);
       setForm(initialForm);
+      setErrors({});
+
     } catch (error) {
       console.error("Error al enviar la consulta:", error);
       setSubmitError(error.message || "Ocurrió un error.");
+
     } finally {
       setIsSubmitting(false);
     }
@@ -121,6 +161,7 @@ export default function Contact() {
             <p className="text-sm font-semibold">
               ¿Quieres saber más?
             </p>
+
             <p className="mt-2 text-sm leading-6 text-white/50">
               Estamos aquí para ayudarte a encontrar la mejor
               opción para tus objetivos.
@@ -141,6 +182,7 @@ export default function Contact() {
               onChange={updateField}
               error={errors.name}
               placeholder="Tu nombre"
+              maxLength={50}
             />
 
             <Field
@@ -151,6 +193,7 @@ export default function Contact() {
               onChange={updateField}
               error={errors.email}
               placeholder="nombre@correo.cl"
+              maxLength={100}
             />
 
             <Field
@@ -161,6 +204,7 @@ export default function Contact() {
               onChange={updateField}
               error={errors.phone}
               placeholder="+56 9 1234 5678"
+              maxLength={15}
             />
 
             <div className="sm:col-span-2">
@@ -175,6 +219,7 @@ export default function Contact() {
                 id="message"
                 name="message"
                 rows="4"
+                maxLength={500}
                 value={form.message}
                 onChange={updateField}
                 aria-invalid={Boolean(errors.message)}
@@ -182,11 +227,21 @@ export default function Contact() {
                 className="w-full resize-y rounded border border-white/15 bg-[#101010] px-3 py-3 text-sm text-white placeholder:text-white/30 focus:border-neon"
               />
 
-              {errors.message && (
-                <p className="mt-1.5 text-xs text-red-300">
-                  {errors.message}
-                </p>
-              )}
+              <div className="mt-1.5 flex justify-between">
+                {errors.message ? (
+                  <p className="text-xs text-red-300">
+                    {errors.message}
+                  </p>
+                ) : (
+                  <span className="text-xs text-white/40">
+                    Entre 10 y 500 caracteres.
+                  </span>
+                )}
+
+                <span className="text-xs text-white/40">
+                  {form.message.length}/500
+                </span>
+              </div>
             </div>
           </div>
 
@@ -229,6 +284,7 @@ function Field({
   onChange,
   error,
   placeholder,
+  maxLength,
 }) {
   const errorId = `${name}-error`;
 
@@ -248,6 +304,7 @@ function Field({
         value={value}
         onChange={onChange}
         placeholder={placeholder}
+        maxLength={maxLength}
         aria-invalid={Boolean(error)}
         aria-describedby={error ? errorId : undefined}
         className="min-h-12 w-full rounded border border-white/15 bg-[#101010] px-3 text-sm text-white placeholder:text-white/30 focus:border-neon"

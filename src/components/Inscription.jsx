@@ -39,17 +39,75 @@ export default function Inscription({ selectedPlan }) {
 
   async function handleSubmit(event) {
     event.preventDefault();
+
     setError("");
     setSubmitted(false);
 
+    const nombre = form.nombre.trim();
+    const apellido = form.apellido.trim();
+    const correo = form.correo.trim();
+    const telefono = form.telefono.trim();
+    const plan = form.plan;
+
+    // Validaciones
+    const nombreValido = /^[A-Za-z ]+$/;
+    const correoValido = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+    const digitosTelefono = telefono.replace(/\D/g, "");
+
+    // Aceptar teléfono nacional o con prefijo 56
+    const telefonoNacional = digitosTelefono.startsWith("56")
+      ? digitosTelefono.slice(2)
+      : digitosTelefono;
+
+    // Todos los campos obligatorios
+    if (!nombre || !apellido || !correo || !telefono || !plan) {
+      setError("Todos los campos son obligatorios.");
+      return;
+    }
+
+    // Nombre
+    if (nombre.length > 50 || !nombreValido.test(nombre)) {
+      setError(
+        "El nombre solo puede contener letras sin tildes y espacios. Máximo 50 caracteres."
+      );
+      return;
+    }
+
+    // Apellido
+    if (apellido.length > 50 || !nombreValido.test(apellido)) {
+      setError(
+        "El apellido solo puede contener letras sin tildes y espacios. Máximo 50 caracteres."
+      );
+      return;
+    }
+
+    // Correo electrónico
     if (
-      !form.nombre.trim() ||
-      !form.apellido.trim() ||
-      !form.correo.trim() ||
-      !form.telefono.trim() ||
-      !form.plan
+      correo.length < 10 ||
+      correo.length > 100 ||
+      !correoValido.test(correo)
     ) {
-      setError("Completa todos los campos.");
+      setError(
+        "Ingresa un correo válido de entre 10 y 100 caracteres."
+      );
+      return;
+    }
+
+    // Teléfono celular chileno
+    if (
+      telefonoNacional.length !== 9 ||
+      !telefonoNacional.startsWith("9")
+    ) {
+      setError(
+        "Ingresa un número válido de 9 dígitos. Ejemplo: +56 9 1234 5678."
+      );
+      return;
+    }
+
+    // Plan permitido
+    if (!["Básico", "Premium", "VIP"].includes(plan)) {
+      setError("Selecciona un plan válido.");
       return;
     }
 
@@ -64,28 +122,37 @@ export default function Inscription({ selectedPlan }) {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            nombre: form.nombre.trim(),
-            apellido: form.apellido.trim(),
-            correo: form.correo.trim(),
-            telefono: form.telefono.trim(),
-            plan: form.plan,
+            nombre,
+            apellido,
+            correo,
+            telefono,
+            plan,
           }),
         }
       );
 
       const resultado = await respuesta.json();
 
+      console.log("RESPUESTA DEL BACKEND:", resultado);
+
       if (!respuesta.ok) {
         throw new Error(
-          resultado.mensaje || "No se pudo completar la inscripción."
+          resultado.detalle ||
+          resultado.mensaje ||
+          "No se pudo completar la inscripción."
         );
       }
 
       setSubmitted(true);
       setForm(initialForm);
+
     } catch (err) {
       console.error("Error al registrar inscripción:", err);
-      setError(err.message || "Ocurrió un error al enviar los datos.");
+
+      setError(
+        err.message || "Ocurrió un error al enviar los datos."
+      );
+
     } finally {
       setIsSubmitting(false);
     }
@@ -111,6 +178,7 @@ export default function Inscription({ selectedPlan }) {
 
           <form
             onSubmit={handleSubmit}
+            noValidate
             className="mt-10 rounded border border-white/10 bg-card p-5 sm:p-8"
           >
             <div className="grid gap-5 sm:grid-cols-2">
@@ -120,6 +188,7 @@ export default function Inscription({ selectedPlan }) {
                 value={form.nombre}
                 onChange={updateField}
                 placeholder="Tu nombre"
+                maxLength={50}
               />
 
               <Field
@@ -128,6 +197,7 @@ export default function Inscription({ selectedPlan }) {
                 value={form.apellido}
                 onChange={updateField}
                 placeholder="Tu apellido"
+                maxLength={50}
               />
 
               <Field
@@ -137,6 +207,7 @@ export default function Inscription({ selectedPlan }) {
                 value={form.correo}
                 onChange={updateField}
                 placeholder="nombre@correo.cl"
+                maxLength={100}
               />
 
               <Field
@@ -146,6 +217,7 @@ export default function Inscription({ selectedPlan }) {
                 value={form.telefono}
                 onChange={updateField}
                 placeholder="+56 9 1234 5678"
+                maxLength={15}
               />
 
               <div className="sm:col-span-2">
@@ -161,6 +233,7 @@ export default function Inscription({ selectedPlan }) {
                   name="plan"
                   value={form.plan}
                   onChange={updateField}
+                  required
                   className="min-h-12 w-full rounded border border-white/15 bg-[#101010] px-3 text-sm text-white"
                 >
                   <option value="">Selecciona un plan</option>
@@ -210,6 +283,7 @@ function Field({
   value,
   onChange,
   placeholder,
+  maxLength,
 }) {
   return (
     <div>
@@ -227,6 +301,7 @@ function Field({
         value={value}
         onChange={onChange}
         placeholder={placeholder}
+        maxLength={maxLength}
         className="min-h-12 w-full rounded border border-white/15 bg-[#101010] px-3 text-sm text-white placeholder:text-white/30 focus:border-neon"
       />
     </div>

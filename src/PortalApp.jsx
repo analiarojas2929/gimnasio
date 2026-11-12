@@ -1,5 +1,12 @@
+
 import { lazy, Suspense } from "react";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+} from "react-router-dom";
+
 import App from "./App.jsx";
 import { authService } from "./services/authService.js";
 
@@ -14,7 +21,9 @@ const WorkoutCalendar = lazy(() => import("./pages/WorkoutCalendar.jsx"));
 const MyProfile = lazy(() => import("./pages/MyProfile.jsx"));
 
 function RequireDemoSession({ children }) {
-  return authService.getCurrentUser() ? children : <Navigate to="/login" replace />;
+  return authService.getCurrentUser()
+    ? children
+    : <Navigate to="/login" replace />;
 }
 
 export default function PortalApp() {
@@ -29,8 +38,13 @@ export default function PortalApp() {
       >
         <Routes>
           <Route path="/" element={<App />} />
+
+          <Route path="/admin" element={<App />} />
+
           <Route path="/login" element={<Login />} />
+
           <Route path="/registro" element={<Register />} />
+
           <Route
             path="/dashboard"
             element={
@@ -46,6 +60,7 @@ export default function PortalApp() {
             <Route path="calendario" element={<WorkoutCalendar />} />
             <Route path="perfil" element={<MyProfile />} />
           </Route>
+
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
