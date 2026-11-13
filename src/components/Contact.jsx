@@ -1,6 +1,7 @@
 
 import { useState } from "react";
 import { CheckCircle2, Send } from "lucide-react";
+import ChileMobileInput, { formatChilePhone } from "./ChileMobileInput.jsx";
 
 const initialForm = {
   name: "",
@@ -33,6 +34,13 @@ export default function Contact() {
     setSubmitError("");
   }
 
+  function updatePhone(value) {
+    setForm((current) => ({ ...current, phone: value }));
+    setErrors((current) => ({ ...current, phone: "" }));
+    setSubmitted(false);
+    setSubmitError("");
+  }
+
   async function handleSubmit(event) {
     event.preventDefault();
 
@@ -40,19 +48,13 @@ export default function Contact() {
 
     const nombre = form.name.trim();
     const correo = form.email.trim();
-    const telefono = form.phone.trim();
+    const telefono = form.phone;
     const mensaje = form.message.trim();
 
     const nombreValido = /^[A-Za-z ]+$/;
 
     const emailPattern =
       /^(?!.*\.\.)[A-Za-z0-9_%+-]+(?:\.[A-Za-z0-9_%+-]+)*@[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:\.[A-Za-z]{2,})+$/;
-
-    const phoneDigits = telefono.replace(/\D/g, "");
-
-    const telefonoNacional = phoneDigits.startsWith("56")
-      ? phoneDigits.slice(2)
-      : phoneDigits;
 
     // Validar nombre
     if (!nombre) {
@@ -77,10 +79,7 @@ export default function Contact() {
     // Validar teléfono
     if (!telefono) {
       nextErrors.phone = "El teléfono es obligatorio.";
-    } else if (
-      telefonoNacional.length !== 9 ||
-      !telefonoNacional.startsWith("9")
-    ) {
+    } else if (!/^9\d{8}$/.test(telefono)) {
       nextErrors.phone =
         "Ingresa un número válido de 9 dígitos. Ejemplo: +56 9 1234 5678.";
     }
@@ -112,7 +111,7 @@ export default function Contact() {
           body: JSON.stringify({
             nombre,
             correo,
-            telefono,
+            telefono: formatChilePhone(telefono),
             mensaje,
           }),
         }
@@ -196,15 +195,12 @@ export default function Contact() {
               maxLength={100}
             />
 
-            <Field
+            <ChileMobileInput
+              id="contact-phone"
               label="Teléfono"
-              name="phone"
-              type="tel"
               value={form.phone}
-              onChange={updateField}
+              onChange={updatePhone}
               error={errors.phone}
-              placeholder="+56 9 1234 5678"
-              maxLength={15}
             />
 
             <div className="sm:col-span-2">
