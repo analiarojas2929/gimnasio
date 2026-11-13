@@ -25,21 +25,28 @@ export default function Plans({ onChoosePlan }) {
   const [plans, setPlans] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
+  const [intento, setIntento] = useState(0);
 
   useEffect(() => {
+    let activo = true;
     const cargarPlanes = async () => {
+      setCargando(true);
+      setError("");
       try {
         const datos = await obtenerPlanes();
-        setPlans(datos);
+        if (activo) setPlans(datos);
       } catch (err) {
-        setError("No fue posible cargar los planes.");
+        if (activo) setError(err.message || "No fue posible cargar los planes.");
       } finally {
-        setCargando(false);
+        if (activo) setCargando(false);
       }
     };
 
     cargarPlanes();
-  }, []);
+    return () => {
+      activo = false;
+    };
+  }, [intento]);
 
   return (
     <section
@@ -68,7 +75,16 @@ export default function Plans({ onChoosePlan }) {
         )}
 
         {error && (
-          <p className="mt-12 text-center text-red-400">{error}</p>
+          <div className="mt-12 text-center">
+            <p role="alert" className="text-red-400">{error}</p>
+            <button
+              type="button"
+              onClick={() => setIntento((actual) => actual + 1)}
+              className="mt-4 min-h-11 rounded border border-white/20 px-5 text-sm font-semibold text-white transition-colors hover:border-neon hover:text-neon focus-visible:outline focus-visible:outline-2 focus-visible:outline-neon"
+            >
+              Reintentar
+            </button>
+          </div>
         )}
 
         {!cargando && !error && plans.length === 0 && (

@@ -7,9 +7,26 @@ import { verificarToken } from "./middleware/auth.js";
 
 
 const app = express();
-const PORT = 3000;
+const PORT = Number(process.env.PORT || 3000);
 
-app.use(cors());
+const allowedOrigins = (process.env.FRONTEND_ORIGINS || "http://localhost:5173")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+app.use(cors({
+    origin(origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+
+        console.warn(`Origen CORS rechazado: ${origin}`);
+        return callback(null, false);
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+}));
 app.use(express.json());
 
 // ==========================================
@@ -48,6 +65,16 @@ app.get("/api", (req, res) => {
     });
 });
 
+app.get("/api/health", async (req, res) => {
+    try {
+        await pool.query("SELECT 1");
+        res.json({ estado: "Servidor y PostgreSQL disponibles" });
+    } catch (error) {
+        console.error("Health check de PostgreSQL fallido:", error);
+        res.status(503).json({ estado: "Servidor disponible, PostgreSQL no disponible" });
+    }
+});
+
 // ==========================================
 // OBTENER PLANES ACTIVOS
 // ==========================================
@@ -64,10 +91,10 @@ app.get("/api/planes", async (req, res) => {
         res.json(resultado.rows);
 
     } catch (error) {
-        console.error("Error al obtener los planes:", error);
+        console.error("Error al consultar GET /api/planes:", error);
 
         res.status(500).json({
-            mensaje: "Error al consultar los planes."
+            mensaje: "No se pudieron consultar los planes. Verifica la conexión a PostgreSQL y la tabla planes."
         });
     }
 });
@@ -424,7 +451,7 @@ app.listen(PORT, () => {
 
     pool.query("SELECT NOW()")
         .then(() => {
-            console.log("PostgreSQL conectado correctamente");
+            console.log("PostgreSQL conectado correctamente.");
         })
         .catch((error) => {
             console.error("Error de conexión con PostgreSQL:", error);
